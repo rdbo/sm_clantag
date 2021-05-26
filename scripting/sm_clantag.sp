@@ -15,7 +15,6 @@ public Plugin myinfo = {
 ConVar g_cvClanTagEnabled;
 ConVar g_cvPlayerTag;
 ConVar g_cvAdminTag;
-bool g_bClanTagChanged[MAXPLAYERS + 1];
 
 public void OnPluginStart()
 {
@@ -42,53 +41,38 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
     {
         if (StrEqual(sCmd, "ClanTagChanged"))
         {
-            if (g_bClanTagChanged[client])
-            {
-                PrintToChat(client, "[SM] You cannot change your clan tag.");
-                return Plugin_Handled;
-            }
-            
-            ConVar cvTag = g_cvPlayerTag;
-            
-            if (GetUserFlagBits(client))
-            {
-                cvTag = g_cvAdminTag;
-            }
-            
-            char tag[64] = { 0 };
-            char player_tag[64] = { 0 };
-            char admin_tag[64] = { 0 };
-            
-            CS_GetClientClanTag(client, player_tag, sizeof(player_tag));
-            cvTag.GetString(tag, sizeof(tag));
-            g_cvAdminTag.GetString(admin_tag, sizeof(admin_tag));
-            
-            if (!strlen(tag) && !StrEqual(player_tag, admin_tag))
-            {
-                g_bClanTagChanged[client] = true;
-                return Plugin_Continue;
-            }
-            
-            CS_SetClientClanTag(client, tag);
-            
-            g_bClanTagChanged[client] = true;
+            PrintToChat(client, "[SM] You cannot change your clan tag.");
+            return Plugin_Handled;
         }
     }
     
     return Plugin_Continue;
 }
 
-public void OnClientConnected(int client)
+public void OnClientPutInServer(int client)
 {
-    ResetData(client);
+    UpdateClanTag(client);
 }
 
-public void OnClientDisconnect(int client)
+void UpdateClanTag(int client)
 {
-    ResetData(client);
-}
-
-void ResetData(int client)
-{
-    g_bClanTagChanged[client] = false;
+    ConVar cvTag = g_cvPlayerTag;
+    
+    if (GetUserFlagBits(client))
+    {
+        cvTag = g_cvAdminTag;
+    }
+    
+    char tag[64] = { 0 };
+    char player_tag[64] = { 0 };
+    char admin_tag[64] = { 0 };
+    
+    CS_GetClientClanTag(client, player_tag, sizeof(player_tag));
+    cvTag.GetString(tag, sizeof(tag));
+    g_cvAdminTag.GetString(admin_tag, sizeof(admin_tag));
+    
+    if (!strlen(tag) && !StrEqual(player_tag, admin_tag))
+        return;
+    
+    CS_SetClientClanTag(client, tag);
 }
