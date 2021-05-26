@@ -15,6 +15,7 @@ public Plugin myinfo = {
 ConVar g_cvClanTagEnabled;
 ConVar g_cvPlayerTag;
 ConVar g_cvAdminTag;
+bool   g_bAllowChange[MAXPLAYERS + 1];
 
 public void OnPluginStart()
 {
@@ -41,8 +42,13 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
     {
         if (StrEqual(sCmd, "ClanTagChanged"))
         {
-            PrintToChat(client, "[SM] You cannot change your clan tag.");
-            return Plugin_Handled;
+            if (!g_bAllowChange[client])
+            {
+                PrintToChat(client, "[SM] You cannot change your clan tag.");
+                return Plugin_Handled;
+            }
+            
+            g_bAllowChange[client] = false;
         }
     }
     
@@ -51,6 +57,7 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
 
 public void OnClientPutInServer(int client)
 {
+    g_bAllowChange[client] = true;
     UpdateClanTag(client);
 }
 
