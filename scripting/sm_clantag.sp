@@ -46,10 +46,15 @@ public void HkPlayerTeam(Event event, const char[] name, bool dontBroadcast)
         cvTag = g_cvAdminTag;
     }
     
-    char tag[255] = { 0 };
-    cvTag.GetString(tag, sizeof(tag));
+    char tag[64] = { 0 };
+    char player_tag[64] = { 0 };
+    char admin_tag[64] = { 0 };
     
-    if (!strlen(tag))
+    CS_GetClientClanTag(client, player_tag, sizeof(player_tag));
+    cvTag.GetString(tag, sizeof(tag));
+    g_cvAdminTag.GetString(admin_tag, sizeof(admin_tag));
+    
+    if (!strlen(tag) && !StrEqual(player_tag, admin_tag))
         return;
     
     CS_SetClientClanTag(client, tag);
