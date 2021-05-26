@@ -15,6 +15,7 @@ public Plugin myinfo = {
 ConVar g_cvClanTagEnabled;
 ConVar g_cvPlayerTag;
 ConVar g_cvAdminTag;
+bool g_bClanTagChanged[MAXPLAYERS + 1];
 
 public void OnPluginStart()
 {
@@ -29,33 +30,65 @@ public void OnPluginStart()
     g_cvClanTagEnabled = CreateConVar("sm_clantag_enabled", "1", "Enable Custom Clan Tags");
     g_cvAdminTag = CreateConVar("sm_clantag_admin", "[ADMIN]", "Admin Custom Clan Tag");
     g_cvPlayerTag = CreateConVar("sm_clantag_player", "[PLAYER]", "Player Custom Clan Tag");
-    HookEvent("player_team", HkPlayerTeam);
 }
 
-public void HkPlayerTeam(Event event, const char[] name, bool dontBroadcast)
+public Action OnClientCommandKeyValues(int client, KeyValues kv)
 {
-    int client = GetClientOfUserId(event.GetInt("userid"));
+    if (!g_cvClanTagEnabled.BoolValue)
+        return Plugin_Continue;
     
-    if (!g_cvClanTagEnabled.BoolValue || !client)
-        return;
-    
-    ConVar cvTag = g_cvPlayerTag;
-    
-    if (GetUserFlagBits(client))
+    char sCmd[64] = { 0 };
+    if (kv.GetSectionName(sCmd, sizeof(sCmd)))
     {
-        cvTag = g_cvAdminTag;
+        if (StrEqual(sCmd, "ClanTagChanged"))
+        {
+            if (g_bClanTagChanged[client])
+            {
+                PrintToChat(client, "[SM] You cannot change your clan tag.");
+                return Plugin_Handled;
+            }
+            
+            ConVar cvTag = g_cvPlayerTag;
+            
+            if (GetUserFlagBits(client))
+            {
+                cvTag = g_cvAdminTag;
+            }
+            
+            char tag[64] = { 0 };
+            char player_tag[64] = { 0 };
+            char admin_tag[64] = { 0 };
+            
+            CS_GetClientClanTag(client, player_tag, sizeof(player_tag));
+            cvTag.GetString(tag, sizeof(tag));
+            g_cvAdminTag.GetString(admin_tag, sizeof(admin_tag));
+            
+            if (!strlen(tag) && !StrEqual(player_tag, admin_tag))
+            {
+                g_bClanTagChanged[client] = true;
+                return Plugin_Continue;
+            }
+            
+            CS_SetClientClanTag(client, tag);
+            
+            g_bClanTagChanged[client] = true;
+        }
     }
     
-    char tag[64] = { 0 };
-    char player_tag[64] = { 0 };
-    char admin_tag[64] = { 0 };
-    
-    CS_GetClientClanTag(client, player_tag, sizeof(player_tag));
-    cvTag.GetString(tag, sizeof(tag));
-    g_cvAdminTag.GetString(admin_tag, sizeof(admin_tag));
-    
-    if (!strlen(tag) && !StrEqual(player_tag, admin_tag))
-        return;
-    
-    CS_SetClientClanTag(client, tag);
+    return Plugin_Continue;
+}
+
+public void OnClientConnected(int client)
+{
+    ResetData(client);
+}
+
+public void OnClientDisconnect(int client)
+{
+    ResetData(client);
+}
+
+void ResetData(int client)
+{
+    g_bClanTagChanged[client] = false;
 }
