@@ -47,8 +47,6 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
                 PrintToChat(client, "[SM] You cannot change your clan tag.");
                 return Plugin_Handled;
             }
-            
-            UpdateClanTag(client);
         }
     }
     
@@ -58,6 +56,7 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
 public void OnClientConnected(int client)
 {
     g_iChanged[client] = 0;
+    UpdateClanTag(client);
 }
 
 void UpdateClanTag(int client)
