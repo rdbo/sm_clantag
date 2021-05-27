@@ -53,7 +53,7 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
     return Plugin_Continue;
 }
 
-public void OnClientConnected(int client)
+public void OnClientPutInServer(int client)
 {
     g_iChanged[client] = 0;
     UpdateClanTag(client);
