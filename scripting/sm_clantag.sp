@@ -15,7 +15,6 @@ public Plugin myinfo = {
 ConVar g_cvClanTagEnabled;
 ConVar g_cvPlayerTag;
 ConVar g_cvAdminTag;
-int    g_iChanged[MAXPLAYERS + 1];
 
 public void OnPluginStart()
 {
@@ -32,35 +31,11 @@ public void OnPluginStart()
     g_cvPlayerTag = CreateConVar("sm_clantag_player", "[PLAYER]", "Player Custom Clan Tag");
 }
 
-public Action OnClientCommandKeyValues(int client, KeyValues kv)
+public void OnClientSettingsChanged(int client)
 {
     if (!g_cvClanTagEnabled.BoolValue)
-        return Plugin_Continue;
+        return;
     
-    char sCmd[64] = { 0 };
-    if (kv.GetSectionName(sCmd, sizeof(sCmd)))
-    {
-        if (StrEqual(sCmd, "ClanTagChanged"))
-        {
-            if (g_iChanged[client] > 2)
-            {
-                PrintToChat(client, "[SM] You cannot change your clan tag.");
-                return Plugin_Handled;
-            }
-        }
-    }
-    
-    return Plugin_Continue;
-}
-
-public void OnClientPutInServer(int client)
-{
-    g_iChanged[client] = 0;
-    UpdateClanTag(client);
-}
-
-void UpdateClanTag(int client)
-{
     ConVar cvTag = g_cvPlayerTag;
     
     if (GetUserFlagBits(client))
