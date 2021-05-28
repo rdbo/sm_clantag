@@ -70,8 +70,11 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
                 
                 CS_GetClientClanTag(client, cur_tag, sizeof(cur_tag));
                 
-                if (!strlen(player_tag) && !StrEqual(cur_tag, admin_tag))
+                if (!strlen(cur_tag) || (!strlen(player_tag) && !StrEqual(cur_tag, admin_tag)))
+                {
+                    g_Changed[client] = false;
                     return Plugin_Continue;
+                }
                 
                 CS_SetClientClanTag(client, player_tag);
             }
@@ -81,4 +84,9 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
     }
     
     return Plugin_Continue;
+}
+
+public void OnClientConnected(int client)
+{
+    g_Changed[client] = false;
 }
