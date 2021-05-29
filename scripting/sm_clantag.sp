@@ -4,8 +4,6 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define ADMFLAG_CLANTAG ADMFLAG_GENERIC
-
 public Plugin myinfo = {
     name        = "SM Clan Tag",
     author      = "rdbo",
@@ -17,7 +15,8 @@ public Plugin myinfo = {
 ConVar g_cvClanTagEnabled;
 ConVar g_cvPlayerTag;
 ConVar g_cvAdminTag;
-bool   g_Changed[MAXPLAYERS + 1];
+char   g_sAdminTag[64];
+char   g_sPlayerTag[64];
 
 public void OnPluginStart()
 {
@@ -44,49 +43,33 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
     {
         if (StrEqual(sCmd, "ClanTagChanged"))
         {
-            if (g_Changed[client])
-            {
-                PrintToChat(client, "[SM] You cannot change your clan tag");
-                return Plugin_Handled;
-            }
-            
-            g_Changed[client] = true;
-            
-            char admin_tag[64];
-            char player_tag[64];
-            
-            g_cvAdminTag.GetString(admin_tag, sizeof(admin_tag));
-            g_cvPlayerTag.GetString(player_tag, sizeof(player_tag));
-            
+            g_cvAdminTag.GetString(g_sAdminTag, sizeof(g_sAdminTag));
+            g_cvPlayerTag.GetString(g_sPlayerTag, sizeof(g_sPlayerTag));
             
             if (GetUserFlagBits(client))
             {
-                CS_SetClientClanTag(client, admin_tag);
+                CS_SetClientClanTag(client, g_sAdminTag);
+                return Plugin_Handled;
             }
             
-            else
-            {
-                char cur_tag[64];
-                
-                CS_GetClientClanTag(client, cur_tag, sizeof(cur_tag));
-                
-                if (!strlen(cur_tag) || (!strlen(player_tag) && !StrEqual(cur_tag, admin_tag)))
-                {
-                    g_Changed[client] = false;
-                    return Plugin_Continue;
-                }
-                
-                CS_SetClientClanTag(client, player_tag);
-            }
-            
-            return Plugin_Handled;
+            RequestFrame(HandlePlayerTag, client);
         }
     }
     
     return Plugin_Continue;
 }
 
-public void OnClientConnected(int client)
+public void HandlePlayerTag(int client)
 {
-    g_Changed[client] = false;
+    if (!client || !IsClientConnected(client))
+        return;
+        
+    char sCurTag[64];
+    
+    CS_GetClientClanTag(client, sCurTag, sizeof(sCurTag));
+    
+    if (strlen(g_sPlayerTag) || (StrEqual(sCurTag, g_sAdminTag) && !StrEqual(g_sAdminTag, g_sPlayerTag)))
+    {
+        CS_SetClientClanTag(client, g_sPlayerTag);
+    }
 }
