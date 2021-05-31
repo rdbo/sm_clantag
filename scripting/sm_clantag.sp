@@ -83,7 +83,7 @@ public void HandlePlayerTag(int client)
     
     CS_GetClientClanTag(client, sCurTag, sizeof(sCurTag));
     
-    if (strlen(g_sPlayerTag) || (StrEqual(sCurTag, g_sAdminTag) && !StrEqual(g_sAdminTag, g_sPlayerTag)))
+    if (!strlen(sCurTag) || (StrEqual(sCurTag, g_sAdminTag) && !StrEqual(g_sAdminTag, g_sPlayerTag)) || (StrEqual(sCurTag, g_sVipTag) && !StrEqual(g_sVipTag, g_sPlayerTag)))
     {
         CS_SetClientClanTag(client, g_sPlayerTag);
     }
