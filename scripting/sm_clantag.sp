@@ -4,6 +4,9 @@
 #pragma semicolon 1
 #pragma newdecls required
 
+#define ADMFLAG_ADM ADMFLAG_GENERIC
+#define ADMFLAG_VIP ADMFLAG_RESERVATION
+
 public Plugin myinfo = {
     name        = "SM Clan Tag",
     author      = "rdbo",
@@ -15,8 +18,10 @@ public Plugin myinfo = {
 ConVar g_cvClanTagEnabled;
 ConVar g_cvPlayerTag;
 ConVar g_cvAdminTag;
+ConVar g_cvVipTag;
 char   g_sAdminTag[64];
 char   g_sPlayerTag[64];
+char   g_sVipTag[64];
 
 public void OnPluginStart()
 {
@@ -31,6 +36,7 @@ public void OnPluginStart()
     g_cvClanTagEnabled = CreateConVar("sm_clantag_enabled", "1", "Enable Custom Clan Tags");
     g_cvAdminTag = CreateConVar("sm_clantag_admin", "[ADMIN]", "Admin Custom Clan Tag");
     g_cvPlayerTag = CreateConVar("sm_clantag_player", "[PLAYER]", "Player Custom Clan Tag");
+    g_cvVipTag = CreateConVar("sm_clantag_vip", "[VIP]", "VIP Custom Clan Tag");
 }
 
 public Action OnClientCommandKeyValues(int client, KeyValues kv)
@@ -45,10 +51,19 @@ public Action OnClientCommandKeyValues(int client, KeyValues kv)
         {
             g_cvAdminTag.GetString(g_sAdminTag, sizeof(g_sAdminTag));
             g_cvPlayerTag.GetString(g_sPlayerTag, sizeof(g_sPlayerTag));
+            g_cvVipTag.GetString(g_sVipTag, sizeof(g_sVipTag));
             
-            if (GetUserFlagBits(client))
+            int flag = GetUserFlagBits(client);
+            
+            if (flag & ADMFLAG_ADM)
             {
                 CS_SetClientClanTag(client, g_sAdminTag);
+                return Plugin_Handled;
+            }
+            
+            if (flag & ADMFLAG_VIP)
+            {
+                CS_SetClientClanTag(client, g_sVipTag);
                 return Plugin_Handled;
             }
             
