@@ -4,7 +4,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define ADMFLAG_ADM ADMFLAG_GENERIC
+#define ADMFLAG_ADM (ADMFLAG_GENERIC | ADMFLAG_ROOT)
 #define ADMFLAG_VIP ADMFLAG_RESERVATION
 
 public Plugin myinfo = {
